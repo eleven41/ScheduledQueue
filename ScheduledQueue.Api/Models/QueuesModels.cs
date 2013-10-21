@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -12,15 +13,18 @@ namespace ScheduledQueue.Api.Models
 
 	public class CreateQueueRequestModel
 	{
+		[Required]
 		public string QueueName { get; set; }
 	}
 
 	public class CreateQueueResponseModel : BasicResponseModel
 	{
+		public string QueueName { get; set; }
 	}
 
 	public class DeleteQueueRequestModel
 	{
+		[Required]
 		public string QueueName { get; set; }
 	}
 
