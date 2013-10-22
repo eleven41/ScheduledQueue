@@ -11,9 +11,8 @@ namespace Tests
 	{
 		static void Main(string[] args)
 		{
-			//Test1();
+			Test1();
 			//Test2();
-			Test3();
 		}
 
 		static void Test1()
@@ -55,10 +54,14 @@ namespace Tests
 
 			{
 				Console.WriteLine("Receiving message (no delay)");
-				var result = queueService.ReceiveMessage(queueName, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0));
+				var result = queueService.ReceiveMessage(queueName, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(30));
 				System.Diagnostics.Debug.Assert(result == null);
 				System.Diagnostics.Debug.Assert(DateTime.UtcNow < receive1Date.AddSeconds(30));
 			}
+
+			// Wait 15 seconds
+			Console.WriteLine("Wait 15 seconds");
+			System.Threading.Thread.Sleep(15 * 1000);
 
 			{
 				Console.WriteLine("Receiving message (60 second delay)");
@@ -66,6 +69,19 @@ namespace Tests
 				System.Diagnostics.Debug.Assert(result != null);
 				System.Diagnostics.Debug.Assert(result.MessageId == messageId);
 				System.Diagnostics.Debug.Assert(DateTime.UtcNow >= receive1Date.AddSeconds(30));
+			}
+
+			{
+				Console.WriteLine("Deleting message");
+				queueService.DeleteMessage(queueName, messageId);
+			}
+
+			DateTime receive2Date = DateTime.UtcNow;
+			{
+				Console.WriteLine("Receiving message (60 second delay)");
+				var result = queueService.ReceiveMessage(queueName, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
+				System.Diagnostics.Debug.Assert(result == null);
+				System.Diagnostics.Debug.Assert(DateTime.UtcNow >= receive2Date.AddSeconds(60));
 			}
 		}
 
@@ -117,56 +133,6 @@ namespace Tests
 			}
 
 			System.Diagnostics.Debug.Assert(signalService.NumTimeouts == 0);
-		}
-
-		static void Test3()
-		{
-			var dateTimeService = new InProcDateTimeService();
-			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
-
-			string queueName = "MyQueue";
-
-			{
-				Console.WriteLine("Creating queue '{0}'", queueName);
-				queueService.CreateQueue(queueName);
-			}
-
-			DateTime messageDate;
-			string messageId;
-			{
-				Console.WriteLine("Sending message 'Hello'");
-
-				var result = queueService.SendMessage(queueName, "Hello");
-
-				System.Diagnostics.Debug.Assert(!String.IsNullOrEmpty(result.MessageId));
-				System.Diagnostics.Debug.Assert(result.MessageDate <= DateTime.UtcNow);
-				messageDate = result.MessageDate;
-				messageId = result.MessageId;
-			}
-
-			DateTime receive1Date = DateTime.UtcNow;
-			{
-				Console.WriteLine("Receiving message (no delay)");
-
-				var result = queueService.ReceiveMessage(queueName, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(30));
-				System.Diagnostics.Debug.Assert(!String.IsNullOrEmpty(result.MessageId));
-				System.Diagnostics.Debug.Assert(result.MessageBody == "Hello");
-				System.Diagnostics.Debug.Assert(result.MessageDate == messageDate);
-			}
-
-			// Wait 15 seconds
-			Console.WriteLine("Wait 15 seconds");
-			System.Threading.Thread.Sleep(15 * 1000);
-
-			{
-				Console.WriteLine("Receiving message (60 second delay)");
-				var result = queueService.ReceiveMessage(queueName, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
-				System.Diagnostics.Debug.Assert(result != null);
-				System.Diagnostics.Debug.Assert(result.MessageId == messageId);
-				System.Diagnostics.Debug.Assert(DateTime.UtcNow >= receive1Date.AddSeconds(30));
-			}
 		}
 	}
 
