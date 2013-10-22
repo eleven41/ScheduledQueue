@@ -89,7 +89,7 @@ namespace ScheduledQueue.Api.Controllers
 						receiveTimeout = TimeSpan.FromSeconds(request.ReceiveTimeout.Value);
 					}
 
-					TimeSpan visibilityTimeout = TimeSpan.FromSeconds(0);
+					TimeSpan visibilityTimeout = TimeSpan.FromSeconds(30);
 					if (request.VisibilityTimeout.HasValue)
 					{
 						if (request.VisibilityTimeout.Value < 0)
@@ -98,10 +98,12 @@ namespace ScheduledQueue.Api.Controllers
 					}
 
 					var message = _queueService.ReceiveMessage(request.QueueName, receiveTimeout, visibilityTimeout);
-
-					result.MessageId = message.MessageId;
-					result.MessageBody = message.MessageBody;
-					result.Date = Utils.FormatIso8601Date(message.MessageDate);
+					if (message != null)
+					{
+						result.MessageId = message.MessageId;
+						result.MessageBody = message.MessageBody;
+						result.Date = Utils.FormatIso8601Date(message.MessageDate);
+					}
 				}
 				catch (ModelErrorException e)
 				{

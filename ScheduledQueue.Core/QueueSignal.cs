@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ScheduledQueue.Core
 {
-	internal class QueueSignal
+	public class QueueSignal
 	{
 		#region Singleton
 
@@ -18,7 +18,7 @@ namespace ScheduledQueue.Core
 			_instance = new QueueSignal();
 		}
 
-		internal static QueueSignal Instance
+		public static QueueSignal Instance
 		{
 			get
 			{

@@ -59,6 +59,8 @@ namespace ScheduledQueue.Api.App_Start
 				.To<ScheduledQueue.Core.InProcDataStorage>();
 			kernel.Bind<ScheduledQueue.Core.IQueueService>()
 				.To<ScheduledQueue.Core.BasicQueueService>();
+			kernel.Bind<ScheduledQueue.Core.ISignalService>()
+				.To<ScheduledQueue.Core.InProcSignalService>();
         }        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,13 +11,15 @@ namespace ScheduledQueue.Core
 	{
 		IDataStorage _dataStorage;
 		IDateTimeService _dateTimeService;
+		ISignalService _signalService;
 
 		QueueSignal _queueSignal;
 
-		public BasicQueueService(IDataStorage dataStorage, IDateTimeService dateTimeService)
+		public BasicQueueService(IDataStorage dataStorage, IDateTimeService dateTimeService, ISignalService signalService)
 		{
 			_dataStorage = dataStorage;
 			_dateTimeService = dateTimeService;
+			_signalService = signalService;
 			_queueSignal = QueueSignal.Instance;
 		}
 
@@ -50,7 +53,7 @@ namespace ScheduledQueue.Core
 			_dataStorage.InsertMessage(queueName, messageId, messageBody, availabilityDate);
 
 			// Notify any waiting receivers
-			_queueSignal.Signal(queueName);
+			_signalService.Signal(queueName, SignalSources.SendMessage);
 
 			return new SendMessageResult()
 			{
@@ -73,6 +76,34 @@ namespace ScheduledQueue.Core
 			return SendMessage(queueName, messageBody, availabilityDate);
 		}
 
+		static ConcurrentDictionary<string, System.Threading.Timer> _visibilityTimers = new ConcurrentDictionary<string, System.Threading.Timer>();
+
+		private void AddVisibilitySignal(string queueName, string messageId, TimeSpan visibilityTimeout)
+		{
+			// Create a timer, but don't start it yet
+			System.Threading.Timer t = new System.Threading.Timer((e) =>
+			{
+				_signalService.Signal(queueName, SignalSources.ReceiveTimeout);
+			}, null, TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+
+			// Add it to our list of timers
+			_visibilityTimers.TryAdd(messageId, t);
+
+			// Get the timer going
+			t.Change(visibilityTimeout, TimeSpan.FromMilliseconds(-1));
+		}
+
+		private void CancelVisibilitySignal(string queueName, string messageId)
+		{
+			// Find the right timer
+			System.Threading.Timer t;
+			if (_visibilityTimers.TryRemove(messageId, out t))
+			{
+				// Stop the timer
+				t.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+			}
+		}
+
 		public ReceiveMessageResult ReceiveMessage(string queueName, TimeSpan receiveTimeout, TimeSpan visibilityTimeout)
 		{
 			var currentTime = _dateTimeService.GetCurrentDateTime();
@@ -80,6 +111,8 @@ namespace ScheduledQueue.Core
 			var message = _dataStorage.GetMessage(queueName, currentTime, newAvailabilityDate);
 			if (message != null)
 			{
+				AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
+
 				return new ReceiveMessageResult()
 				{
 					MessageBody = message.MessageBody,
@@ -88,7 +121,7 @@ namespace ScheduledQueue.Core
 				};
 			}
 
-			var endTime = currentTime + visibilityTimeout;
+			var endTime = currentTime + receiveTimeout;
 			while (currentTime < endTime)
 			{
 				// No message was found, wait for the receive timeout period to see if anything new comes
@@ -96,11 +129,15 @@ namespace ScheduledQueue.Core
 				if (!_queueSignal.Wait(queueName, delay))
 					break;
 
+				currentTime = _dateTimeService.GetCurrentDateTime();
+
 				// Try again
 				newAvailabilityDate = currentTime + visibilityTimeout;
 				message = _dataStorage.GetMessage(queueName, currentTime, newAvailabilityDate);
 				if (message != null)
 				{
+					AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
+
 					return new ReceiveMessageResult()
 					{
 						MessageBody = message.MessageBody,
@@ -108,8 +145,6 @@ namespace ScheduledQueue.Core
 						MessageDate = message.AvailabilityDate
 					};
 				}
-
-				currentTime = _dateTimeService.GetCurrentDateTime();
 			}
 
 			return null;
@@ -117,13 +152,21 @@ namespace ScheduledQueue.Core
 
 		public void DeleteMessage(string queueName, string messageId)
 		{
+			CancelVisibilitySignal(queueName, messageId);
+
 			_dataStorage.DeleteMessage(queueName, messageId);
 		}
 
 		public RescheduleMessageResult RescheduleMessage(string queueName, string messageId, DateTime availabilityDate)
 		{
+			CancelVisibilitySignal(queueName, messageId);
+
 			string newMessageId = GenerateMessageId();
 			_dataStorage.UpdateMessage(queueName, messageId, newMessageId, availabilityDate);
+
+			// Notify any listeners
+			_signalService.Signal(queueName, SignalSources.RescheduleMessage);
+
 			return new RescheduleMessageResult()
 			{
 				NewMessageId = newMessageId,
