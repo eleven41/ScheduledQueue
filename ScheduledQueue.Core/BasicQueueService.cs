@@ -32,6 +32,9 @@ namespace ScheduledQueue.Core
 
 		public string CreateQueue(string queueName)
 		{
+			if (String.IsNullOrEmpty(queueName))
+				throw new ArgumentNullException("queueName");
+
 			_dataStorage.InsertQueue(queueName);
 			return queueName;
 		}

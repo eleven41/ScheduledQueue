@@ -11,9 +11,136 @@ namespace Tests
 	{
 		static void Main(string[] args)
 		{
-			Test1();
+			CreateQueue1();
+			CreateQueue2();
+			CreateQueue3();
+			CreateQueue4();
+			CreateQueue5();
+
+			//Test1();
 			//Test2();
 		}
+
+		private static void CreateQueue1()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var dataStorage = new InProcDataStorage();
+			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+
+			string queueName = "MyQueue";
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+
+			{
+				Console.WriteLine("Creating queue '{0}'", queueName);
+				string newQueueName = queueService.CreateQueue(queueName);
+				System.Diagnostics.Debug.Assert(queueName == newQueueName);
+			}
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+		}
+
+		private static void CreateQueue2()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var dataStorage = new InProcDataStorage();
+			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+
+			string queueName = "MyQueue";
+
+			// Preload
+			dataStorage.InsertQueue(queueName);
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+
+			{
+				Console.WriteLine("Creating queue '{0}'", queueName);
+				string newQueueName = queueService.CreateQueue(queueName);
+				System.Diagnostics.Debug.Assert(queueName == newQueueName);
+			}
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+		}
+
+		private static void CreateQueue3()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var dataStorage = new InProcDataStorage();
+			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+
+			string queueName = "MyQueue";
+
+			// Preload
+			dataStorage.InsertQueue(queueName);
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+
+			{
+				queueName = "myqueue";
+				Console.WriteLine("Creating queue '{0}'", queueName);
+				string newQueueName = queueService.CreateQueue(queueName);
+				System.Diagnostics.Debug.Assert(queueName == newQueueName);
+			}
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+		}
+
+		private static void CreateQueue4()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var dataStorage = new InProcDataStorage();
+			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+
+			string queueName = "MyQueue";
+
+			// Preload
+			dataStorage.InsertQueue(queueName);
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+
+			{
+				queueName = "myqueue2";
+				Console.WriteLine("Creating queue '{0}'", queueName);
+				string newQueueName = queueService.CreateQueue(queueName);
+				System.Diagnostics.Debug.Assert(queueName == newQueueName);
+			}
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 2);
+		}
+
+		private static void CreateQueue5()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var dataStorage = new InProcDataStorage();
+			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+
+			string queueName = "";
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+
+			{
+				Console.WriteLine("Creating queue '{0}'", queueName);
+				try
+				{
+					queueService.CreateQueue(queueName);
+
+					// Should not get here
+					System.Diagnostics.Debug.Assert(false);
+				}
+				catch
+				{
+					// Correct path
+				}
+			}
+
+			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+		}
+
 
 		static void Test1()
 		{

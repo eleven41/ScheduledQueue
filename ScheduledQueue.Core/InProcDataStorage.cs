@@ -30,7 +30,7 @@ namespace ScheduledQueue.Core
 			public DateTime AvailabilityDate { get; set; }
 		}
 
-		static ConcurrentDictionary<string, Queue> _queues = new ConcurrentDictionary<string, Queue>();
+		ConcurrentDictionary<string, Queue> _queues = new ConcurrentDictionary<string, Queue>();
 
 		#region IDataStorage Members
 
