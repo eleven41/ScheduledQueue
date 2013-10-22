@@ -14,8 +14,9 @@ namespace ScheduledQueue.Api.Models
 		[Required]
 		public string MessageBody { get; set; }
 
-		[Required]
 		public string Date { get; set; }
+
+		public double? Delay { get; set; }
 	}
 
 	public class SendMessageResponseModel : BasicResponseModel
@@ -30,8 +31,8 @@ namespace ScheduledQueue.Api.Models
 		[Required]
 		public string QueueName { get; set; }
 
-		public long? ReceiveTimeout { get; set; }
-		public long? VisibilityTimeout { get; set; }
+		public double? ReceiveTimeout { get; set; }
+		public double? VisibilityTimeout { get; set; }
 	}
 
 	public class ReceiveMessageResponseModel : BasicResponseModel
@@ -63,8 +64,8 @@ namespace ScheduledQueue.Api.Models
 		[Required]
 		public string MessageId { get; set; }
 
-		[Required]
 		public string Date { get; set; }
+		public double? Delay { get; set; }
 	}
 
 	public class RescheduleMessageResponseModel : BasicResponseModel

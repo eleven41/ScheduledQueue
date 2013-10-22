@@ -10,11 +10,11 @@ namespace ScheduledQueue.Api.Controllers
 {
 	public class QueueItemsController : BasicController
     {
-		IQueueService _service;
-
-		public QueueItemsController(IQueueService service)
+		IQueueService _queueService;
+		
+		public QueueItemsController(IQueueService queueService)
 		{
-			_service = service;
+			_queueService = queueService;
 		}
 
 		[Route("SendMessage")]
@@ -26,12 +26,41 @@ namespace ScheduledQueue.Api.Controllers
 			{
 				try
 				{
-					DateTime availabilityDate = Utils.ParseIso8601Date(request.Date);
-					string messageId = _service.SendMessage(request.QueueName, request.MessageBody, availabilityDate);
+					SendMessageResult message;
+					if (!String.IsNullOrEmpty(request.Date))
+					{
+						DateTime availabilityDate;
+						try
+						{
+							availabilityDate = Utils.ParseIso8601Date(request.Date);
+						}
+						catch (Exception e)
+						{
+							throw new ModelErrorException("Date", Eleven41.Helpers.ExceptionHelper.GetInnermostMessage(e));
+						}
+
+						message = _queueService.SendMessage(request.QueueName, request.MessageBody, availabilityDate);
+					}
+					else if (request.Delay.HasValue)
+					{
+						if (request.Delay.Value < 0)
+							throw new ModelErrorException("Delay", "Delay must not be a negative number.");
+
+						var delay = TimeSpan.FromSeconds(request.Delay.Value);
+						message = _queueService.SendMessage(request.QueueName, request.MessageBody, delay);
+					}
+					else
+					{
+						message = _queueService.SendMessage(request.QueueName, request.MessageBody);
+					}
 
 					result.QueueName = request.QueueName;
-					result.MessageId = messageId;
-					result.Date = Utils.FormatIso8601Date(availabilityDate);
+					result.MessageId = message.MessageId;
+					result.Date = Utils.FormatIso8601Date(message.MessageDate);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{
@@ -52,19 +81,31 @@ namespace ScheduledQueue.Api.Controllers
 			{
 				try
 				{
-					long receiveTimeout = 0;
+					TimeSpan receiveTimeout = TimeSpan.FromSeconds(0);
 					if (request.ReceiveTimeout.HasValue)
-						receiveTimeout = request.ReceiveTimeout.Value;
+					{
+						if (request.ReceiveTimeout.Value < 0)
+							throw new ModelErrorException("ReceiveTimeout", "ReceiveTimeout must not be a negative number.");
+						receiveTimeout = TimeSpan.FromSeconds(request.ReceiveTimeout.Value);
+					}
 
-					long visibilityTimeout = 30;
+					TimeSpan visibilityTimeout = TimeSpan.FromSeconds(0);
 					if (request.VisibilityTimeout.HasValue)
-						visibilityTimeout = request.VisibilityTimeout.Value;
+					{
+						if (request.VisibilityTimeout.Value < 0)
+							throw new ModelErrorException("VisibilityTimeout", "VisibilityTimeout must not be a negative number.");
+						visibilityTimeout = TimeSpan.FromSeconds(request.VisibilityTimeout.Value);
+					}
 
-					var message = _service.ReceiveMessage(request.QueueName, receiveTimeout, visibilityTimeout);
+					var message = _queueService.ReceiveMessage(request.QueueName, receiveTimeout, visibilityTimeout);
 
 					result.MessageId = message.MessageId;
 					result.MessageBody = message.MessageBody;
 					result.Date = Utils.FormatIso8601Date(message.MessageDate);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{
@@ -85,7 +126,11 @@ namespace ScheduledQueue.Api.Controllers
 			{
 				try
 				{
-					_service.DeleteMessage(request.QueueName, request.MessageId);
+					_queueService.DeleteMessage(request.QueueName, request.MessageId);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{
@@ -106,12 +151,42 @@ namespace ScheduledQueue.Api.Controllers
 			{
 				try
 				{
-					DateTime availabilityDate = Utils.ParseIso8601Date(request.Date);
-					string newMessageId = _service.RescheduleMessage(request.QueueName, request.MessageId, availabilityDate);
+					RescheduleMessageResult message;
+					if (!String.IsNullOrEmpty(request.Date))
+					{
+						DateTime availabilityDate;
+						try
+						{
+							availabilityDate = Utils.ParseIso8601Date(request.Date);
+						}
+						catch (Exception e)
+						{
+							throw new ModelErrorException("Date", Eleven41.Helpers.ExceptionHelper.GetInnermostMessage(e));
+						}
+
+						message = _queueService.RescheduleMessage(request.QueueName, request.MessageId, availabilityDate);
+					}
+					else if (request.Delay.HasValue)
+					{
+						if (request.Delay.Value < 0)
+							throw new ModelErrorException("Delay", "Delay must not be a negative number.");
+
+						var delay = TimeSpan.FromSeconds(request.Delay.Value);
+						message = _queueService.RescheduleMessage(request.QueueName, request.MessageId, delay);
+					}
+					else
+					{
+						// Invalid combination
+						throw new Exception("Date or Delay must be specified.");
+					}
 
 					result.QueueName = request.QueueName;
-					result.MessageId = newMessageId;
-					result.Date = Utils.FormatIso8601Date(availabilityDate);
+					result.MessageId = message.NewMessageId;
+					result.Date = Utils.FormatIso8601Date(message.MessageDate);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{
@@ -122,6 +197,5 @@ namespace ScheduledQueue.Api.Controllers
 			CollectErrors(result);
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
 	}
 }

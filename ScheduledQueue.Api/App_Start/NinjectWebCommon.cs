@@ -54,7 +54,11 @@ namespace ScheduledQueue.Api.App_Start
         private static void RegisterServices(IKernel kernel)
         {
 			kernel.Bind<ScheduledQueue.Core.IDateTimeService>()
-				.To<ScheduledQueue.Core.InprocDateTimeService>();
+				.To<ScheduledQueue.Core.InProcDateTimeService>();
+			kernel.Bind<ScheduledQueue.Core.IDataStorage>()
+				.To<ScheduledQueue.Core.InProcDataStorage>();
+			kernel.Bind<ScheduledQueue.Core.IQueueService>()
+				.To<ScheduledQueue.Core.BasicQueueService>();
         }        
     }
 }

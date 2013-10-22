@@ -32,24 +32,42 @@ namespace ScheduledQueue.Core
 		void DeleteQueue(string queueName);
 
 		/// <summary>
+		/// Adds a message to the specified queue. The message will be available immediately.
+		/// </summary>
+		/// <param name="queueName">Name of the queue to which the message will be added.</param>
+		/// <param name="messageBody">Body of the message.</param>
+		/// <returns>Message data of the newly sent message.</returns>
+		SendMessageResult SendMessage(string queueName, string messageBody);
+
+		/// <summary>
 		/// Adds a message to the specified queue. The message will be available to be
 		/// received after the availability date.
 		/// </summary>
 		/// <param name="queueName">Name of the queue to which the message will be added.</param>
 		/// <param name="messageBody">Body of the message.</param>
 		/// <param name="availabilityDate">Availability date of the message.</param>
-		/// <returns>Unique identifier of the message.</returns>
-		string SendMessage(string queueName, string messageBody, DateTime availabilityDate);
+		/// <returns>Message data of the newly sent message.</returns>
+		SendMessageResult SendMessage(string queueName, string messageBody, DateTime availabilityDate);
+
+		/// <summary>
+		/// Adds a message to the specified queue. The message will be available to be 
+		/// received after the specified delay.
+		/// </summary>
+		/// <param name="queueName">Name of the queue to which the message will be added.</param>
+		/// <param name="messageBody">Body of the message.</param>
+		/// <param name="availabilityDelay">Availability delay of the message.</param>
+		/// <returns>Message data of the newly sent message.</returns>
+		SendMessageResult SendMessage(string queueName, string messageBody, TimeSpan availabilityDelay);
 
 		/// <summary>
 		/// Receives the next available message from a queue. The message is not removed from the queue, 
 		/// but is not made available again for a time specified.
 		/// </summary>
 		/// <param name="queueName">Name of the queue from which to receive the next message.</param>
-		/// <param name="receiveTimeout">Amount of time (in ms) to wait for a message to arrive.</param>
-		/// <param name="visibilityTimeout">Amount of time (in ms) where the message is unavailable to receivers.</param>
+		/// <param name="receiveTimeout">Amount of time to wait for a message to arrive.</param>
+		/// <param name="visibilityTimeout">Amount of time where the message is unavailable to receivers.</param>
 		/// <returns>Message data if a message is found. Null otherwise.</returns>
-		ReceiveMessageResult ReceiveMessage(string queueName, long receiveTimeout, long visibilityTimeout);
+		ReceiveMessageResult ReceiveMessage(string queueName, TimeSpan receiveTimeout, TimeSpan visibilityTimeout);
 
 		/// <summary>
 		/// Deletes the specified message
@@ -64,14 +82,35 @@ namespace ScheduledQueue.Core
 		/// <param name="queueName">Name of the queue in which the message resides.</param>
 		/// <param name="messageId">Identifier of the message.</param>
 		/// <param name="availabilityDate">New availability date of the message.</param>
-		/// <returns>New identifier of the message.</returns>
-		string RescheduleMessage(string queueName, string messageId, DateTime availabilityDate);
+		/// <returns>Message data of the rescheduled message.</returns>
+		RescheduleMessageResult RescheduleMessage(string queueName, string messageId, DateTime availabilityDate);
+
+		/// <summary>
+		/// Reschedules a message for the specified availability date.
+		/// </summary>
+		/// <param name="queueName">Name of the queue in which the message resides.</param>
+		/// <param name="messageId">Identifier of the message.</param>
+		/// <param name="availabilityDelay">New availability delay of the message.</param>
+		/// <returns>Message data of the rescheduled message.</returns>
+		RescheduleMessageResult RescheduleMessage(string queueName, string messageId, TimeSpan availabilityDelay);
+	}
+
+	public class SendMessageResult
+	{
+		public string MessageId { get; set; }
+		public DateTime MessageDate { get; set; }
 	}
 
 	public class ReceiveMessageResult
 	{
 		public string MessageId { get; set; }
 		public string MessageBody { get; set; }
+		public DateTime MessageDate { get; set; }
+	}
+
+	public class RescheduleMessageResult
+	{
+		public string NewMessageId { get; set; }
 		public DateTime MessageDate { get; set; }
 	}
 }

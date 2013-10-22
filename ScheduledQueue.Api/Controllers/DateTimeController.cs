@@ -10,11 +10,11 @@ namespace ScheduledQueue.Api.Controllers
 {
     public class DateTimeController : BasicController
     {
-		IDateTimeService _service;
+		IDateTimeService _dateTimeService;
 
-		public DateTimeController(IDateTimeService service)
+		public DateTimeController(IDateTimeService dateTimeService)
 		{
-			_service = service;
+			_dateTimeService = dateTimeService;
 		}
 
         [Route("GetCurrentDateTime")]
@@ -25,8 +25,12 @@ namespace ScheduledQueue.Api.Controllers
 			{
 				try
 				{
-					DateTime date = _service.GetCurrentDateTime();
+					DateTime date = _dateTimeService.GetCurrentDateTime();
 					result.Date = Utils.FormatIso8601Date(date);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{

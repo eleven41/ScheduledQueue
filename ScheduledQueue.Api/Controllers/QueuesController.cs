@@ -28,6 +28,10 @@ namespace ScheduledQueue.Api.Controllers
 				{
 					result.Queues = _service.ListQueues().ToList();
 				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
+				}
 				catch (Exception e)
 				{
 					ModelState.AddModelError("", Eleven41.Helpers.ExceptionHelper.GetInnermostMessage(e));
@@ -52,6 +56,10 @@ namespace ScheduledQueue.Api.Controllers
 					string queueName = _service.CreateQueue(request.QueueName);
 					result.QueueName = queueName;
 				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
+				}
 				catch (Exception e)
 				{
 					ModelState.AddModelError("", Eleven41.Helpers.ExceptionHelper.GetInnermostMessage(e));
@@ -72,6 +80,10 @@ namespace ScheduledQueue.Api.Controllers
 				try
 				{
 					_service.DeleteQueue(request.QueueName);
+				}
+				catch (ModelErrorException e)
+				{
+					ModelState.AddModelError(e.Key, e.Message);
 				}
 				catch (Exception e)
 				{

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ScheduledQueue.Core
 {
-	public class InprocDateTimeService : IDateTimeService
+	public class InProcDateTimeService : IDateTimeService
 	{
 		#region IDateTimeService Members
 
