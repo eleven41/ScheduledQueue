@@ -30,13 +30,13 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 
 			// Preconditions
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+			System.Diagnostics.Debug.Assert(queueDataProvider.GetQueues().Count() == 0);
 
 			{
 				Console.WriteLine("Creating queue '{0}'", queueName);
@@ -45,7 +45,7 @@ namespace Tests
 			}
 
 			// Postconditions
-			var queues = dataStorage.GetQueues();
+			var queues = queueDataProvider.GetQueues();
 			System.Diagnostics.Debug.Assert(queues.Count() == 1);
 			System.Diagnostics.Debug.Assert(queues.Single() == queueName);
 		}
@@ -54,16 +54,16 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 
 			// Setup
-			dataStorage.InsertQueue(queueName);
+			queueDataProvider.InsertQueue(queueName);
 
 			// Preconditions
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			System.Diagnostics.Debug.Assert(queueDataProvider.GetQueues().Count() == 1);
 
 			{
 				Console.WriteLine("Creating queue '{0}'", queueName);
@@ -72,7 +72,7 @@ namespace Tests
 			}
 
 			// Postconditions
-			var queues = dataStorage.GetQueues();
+			var queues = queueDataProvider.GetQueues();
 			System.Diagnostics.Debug.Assert(queues.Count() == 1);
 			System.Diagnostics.Debug.Assert(queues.Single() == queueName);
 		}
@@ -81,16 +81,16 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 
 			// Setup
-			dataStorage.InsertQueue(queueName);
+			queueDataProvider.InsertQueue(queueName);
 
 			// Preconditions
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			System.Diagnostics.Debug.Assert(queueDataProvider.GetQueues().Count() == 1);
 
 			{
 				queueName = "myqueue";
@@ -100,7 +100,7 @@ namespace Tests
 			}
 
 			// Postconditions
-			var queues = dataStorage.GetQueues();
+			var queues = queueDataProvider.GetQueues();
 			System.Diagnostics.Debug.Assert(queues.Count() == 1);
 			System.Diagnostics.Debug.Assert(queues.Single() == "MyQueue");
 		}
@@ -109,16 +109,16 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 
 			// Setup
-			dataStorage.InsertQueue(queueName);
+			queueDataProvider.InsertQueue(queueName);
 
 			// Preconditions
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			System.Diagnostics.Debug.Assert(queueDataProvider.GetQueues().Count() == 1);
 
 			{
 				queueName = "myqueue2";
@@ -128,7 +128,7 @@ namespace Tests
 			}
 
 			// Postconditions
-			var queues = dataStorage.GetQueues();
+			var queues = queueDataProvider.GetQueues();
 			System.Diagnostics.Debug.Assert(queues.Count() == 2);
 			System.Diagnostics.Debug.Assert(queues.First() == "MyQueue");
 			System.Diagnostics.Debug.Assert(queues.Last() == "myqueue2");
@@ -138,13 +138,13 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "";
 
 			// Preconditions
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+			System.Diagnostics.Debug.Assert(queueDataProvider.GetQueues().Count() == 0);
 
 			{
 				Console.WriteLine("Creating queue '{0}'", queueName);
@@ -162,7 +162,7 @@ namespace Tests
 			}
 
 			// Postconditions
-			var queues = dataStorage.GetQueues();
+			var queues = queueDataProvider.GetQueues();
 			System.Diagnostics.Debug.Assert(queues.Count() == 0);
 		}
 
@@ -171,8 +171,8 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new InProcSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 
@@ -241,8 +241,8 @@ namespace Tests
 		{
 			var dateTimeService = new InProcDateTimeService();
 			var signalService = new TimeoutSignalService();
-			var dataStorage = new InProcDataStorage();
-			var queueService = new BasicQueueService(dataStorage, dateTimeService, signalService);
+			var queueDataProvider = new InProcQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
 
 			string queueName = "MyQueue";
 

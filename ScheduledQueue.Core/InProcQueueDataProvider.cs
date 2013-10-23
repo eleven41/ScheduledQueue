@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ScheduledQueue.Core
 {
-	public class InProcDataStorage : IDataStorage
+	public class InProcQueueDataProvider : IQueueDataProvider
 	{
 		class Queue
 		{
@@ -32,7 +32,7 @@ namespace ScheduledQueue.Core
 
 		ConcurrentDictionary<string, Queue> _queues = new ConcurrentDictionary<string, Queue>();
 
-		#region IDataStorage Members
+		#region IQueueDataProvider Members
 
 		public IEnumerable<string> GetQueues()
 		{

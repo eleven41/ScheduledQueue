@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ScheduledQueue.Core
 {
-	public interface IDataStorage
+	public interface IQueueDataProvider
 	{
 		/// <summary>
 		/// Returns the names of the available queues.

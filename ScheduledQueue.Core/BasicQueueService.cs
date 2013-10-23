@@ -9,13 +9,13 @@ namespace ScheduledQueue.Core
 {
 	public class BasicQueueService : IQueueService
 	{
-		IDataStorage _dataStorage;
+		IQueueDataProvider _queueDataProvider;
 		IDateTimeService _dateTimeService;
 		ISignalService _signalService;
 
-		public BasicQueueService(IDataStorage dataStorage, IDateTimeService dateTimeService, ISignalService signalService)
+		public BasicQueueService(IQueueDataProvider queueDataProvider, IDateTimeService dateTimeService, ISignalService signalService)
 		{
-			_dataStorage = dataStorage;
+			_queueDataProvider = queueDataProvider;
 			_dateTimeService = dateTimeService;
 			_signalService = signalService;
 		}
@@ -24,7 +24,7 @@ namespace ScheduledQueue.Core
 
 		public IEnumerable<string> ListQueues()
 		{
-			return _dataStorage.GetQueues();
+			return _queueDataProvider.GetQueues();
 		}
 
 		public string CreateQueue(string queueName)
@@ -32,13 +32,13 @@ namespace ScheduledQueue.Core
 			if (String.IsNullOrEmpty(queueName))
 				throw new ArgumentNullException("queueName");
 
-			_dataStorage.InsertQueue(queueName);
+			_queueDataProvider.InsertQueue(queueName);
 			return queueName;
 		}
 
 		public void DeleteQueue(string queueName)
 		{
-			_dataStorage.DeleteQueue(queueName);
+			_queueDataProvider.DeleteQueue(queueName);
 		}
 
 		public SendMessageResult SendMessage(string queueName, string messageBody)
@@ -50,7 +50,7 @@ namespace ScheduledQueue.Core
 		public SendMessageResult SendMessage(string queueName, string messageBody, DateTime availabilityDate)
 		{
 			string messageId = GenerateMessageId();
-			_dataStorage.InsertMessage(queueName, messageId, messageBody, availabilityDate);
+			_queueDataProvider.InsertMessage(queueName, messageId, messageBody, availabilityDate);
 
 			// Notify any waiting receivers
 			_signalService.Signal(queueName, SignalSources.SendMessage);
@@ -108,7 +108,7 @@ namespace ScheduledQueue.Core
 		{
 			var currentTime = _dateTimeService.GetCurrentDateTime();
 			var newAvailabilityDate = currentTime + visibilityTimeout;
-			var message = _dataStorage.GetMessage(queueName, currentTime, newAvailabilityDate);
+			var message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 			if (message != null)
 			{
 				AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
@@ -133,7 +133,7 @@ namespace ScheduledQueue.Core
 
 				// Try again
 				newAvailabilityDate = currentTime + visibilityTimeout;
-				message = _dataStorage.GetMessage(queueName, currentTime, newAvailabilityDate);
+				message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 				if (message != null)
 				{
 					AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
@@ -154,7 +154,7 @@ namespace ScheduledQueue.Core
 		{
 			CancelVisibilitySignal(queueName, messageId);
 
-			_dataStorage.DeleteMessage(queueName, messageId);
+			_queueDataProvider.DeleteMessage(queueName, messageId);
 		}
 
 		public RescheduleMessageResult RescheduleMessage(string queueName, string messageId, DateTime availabilityDate)
@@ -162,7 +162,7 @@ namespace ScheduledQueue.Core
 			CancelVisibilitySignal(queueName, messageId);
 
 			string newMessageId = GenerateMessageId();
-			_dataStorage.UpdateMessage(queueName, messageId, newMessageId, availabilityDate);
+			_queueDataProvider.UpdateMessage(queueName, messageId, newMessageId, availabilityDate);
 
 			// Notify any listeners
 			_signalService.Signal(queueName, SignalSources.RescheduleMessage);

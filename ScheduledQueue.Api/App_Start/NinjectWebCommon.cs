@@ -56,8 +56,8 @@ namespace ScheduledQueue.Api.App_Start
 			kernel.Bind<ScheduledQueue.Core.IDateTimeService>()
 				.To<ScheduledQueue.Core.InProcDateTimeService>();
 			
-			kernel.Bind<ScheduledQueue.Core.IDataStorage>()
-				.To<ScheduledQueue.Core.InProcDataStorage>()
+			kernel.Bind<ScheduledQueue.Core.IQueueDataProvider>()
+				.To<ScheduledQueue.Core.InProcQueueDataProvider>()
 				.InSingletonScope();
 
 			kernel.Bind<ScheduledQueue.Core.ISignalService>()
