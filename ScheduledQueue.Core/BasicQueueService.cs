@@ -92,34 +92,6 @@ namespace ScheduledQueue.Core
 			return SendMessage(queueName, messageBody, availabilityDate);
 		}
 
-		static ConcurrentDictionary<string, System.Threading.Timer> _visibilityTimers = new ConcurrentDictionary<string, System.Threading.Timer>();
-
-		private void AddVisibilitySignal(string queueName, string messageId, TimeSpan visibilityTimeout)
-		{
-			// Create a timer, but don't start it yet
-			System.Threading.Timer t = new System.Threading.Timer((e) =>
-			{
-				_signalService.Signal(queueName, SignalSources.ReceiveTimeout);
-			}, null, TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
-
-			// Add it to our list of timers
-			_visibilityTimers.TryAdd(messageId, t);
-
-			// Get the timer going
-			t.Change(visibilityTimeout, TimeSpan.FromMilliseconds(-1));
-		}
-
-		private void CancelVisibilitySignal(string queueName, string messageId)
-		{
-			// Find the right timer
-			System.Threading.Timer t;
-			if (_visibilityTimers.TryRemove(messageId, out t))
-			{
-				// Stop the timer
-				t.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
-			}
-		}
-
 		public ReceiveMessageResult ReceiveMessage(string queueName, TimeSpan receiveTimeout, TimeSpan visibilityTimeout)
 		{
 			if (String.IsNullOrWhiteSpace(queueName))
@@ -133,8 +105,6 @@ namespace ScheduledQueue.Core
 			var message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 			if (message != null)
 			{
-				//AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
-
 				return new ReceiveMessageResult()
 				{
 					MessageBody = message.MessageBody,
@@ -166,8 +136,6 @@ namespace ScheduledQueue.Core
 				message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 				if (message != null)
 				{
-					//AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
-
 					return new ReceiveMessageResult()
 					{
 						MessageBody = message.MessageBody,
@@ -189,8 +157,6 @@ namespace ScheduledQueue.Core
 				throw new ArgumentNullException("messageId");
 			messageId = messageId.Trim();
 
-			//CancelVisibilitySignal(queueName, messageId);
-
 			_queueDataProvider.DeleteMessage(queueName, messageId);
 		}
 
@@ -202,8 +168,6 @@ namespace ScheduledQueue.Core
 			if (String.IsNullOrWhiteSpace(messageId))
 				throw new ArgumentNullException("messageId");
 			messageId = messageId.Trim();
-
-			//CancelVisibilitySignal(queueName, messageId);
 
 			string newMessageId = GenerateMessageId();
 			_queueDataProvider.UpdateMessage(queueName, messageId, newMessageId, availabilityDate);

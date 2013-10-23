@@ -75,7 +75,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new QueueDoesNotExistException(queueName);
+				throw new QueueNotFoundException(queueName);
 
 			Message message = new Message()
 			{
@@ -95,7 +95,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new QueueDoesNotExistException(queueName);
+				throw new QueueNotFoundException(queueName);
 
 			lock (queue.Messages)
 			{
@@ -118,7 +118,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new QueueDoesNotExistException(queueName);
+				throw new QueueNotFoundException(queueName);
 
 			lock (queue.Messages)
 			{
@@ -133,7 +133,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new QueueDoesNotExistException(queueName);
+				throw new QueueNotFoundException(queueName);
 
 			lock (queue.Messages)
 			{
@@ -148,13 +148,13 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new QueueDoesNotExistException(queueName);
+				throw new QueueNotFoundException(queueName);
 
 			lock (queue.Messages)
 			{
 				var message = queue.Messages.Where(m => m.MessageId == messageId).FirstOrDefault();
 				if (message == null)
-					throw new Exception("Message not found with ID: " + messageId);
+					throw new MessageNotFoundException(messageId);
 
 				message.MessageId = newMessageId;
 				message.AvailabilityDate = newAvailabilityDate;

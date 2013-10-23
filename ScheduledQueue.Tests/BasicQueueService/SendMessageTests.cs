@@ -204,7 +204,7 @@ namespace ScheduledQueue.Tests.BasicQueueServiceTests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(QueueDoesNotExistException))]
+		[ExpectedException(typeof(QueueNotFoundException))]
 		public void SendMessageWithQueueThatDoesNotExist()
 		{
 			var dateTimeService = new InProcDateTimeService();

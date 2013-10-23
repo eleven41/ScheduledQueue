@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace ScheduledQueue.Core
 {
-	public class QueueDoesNotExistException : Exception
+	public class QueueNotFoundException : Exception
 	{
-		public QueueDoesNotExistException(string queueName)
-			: base("Queue does not exist: " + queueName)
+		public QueueNotFoundException(string queueName)
+			: base("Queue not found: " + queueName)
 		{
 			this.QueueName = queueName;
 		}

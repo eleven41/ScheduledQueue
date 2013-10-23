@@ -52,7 +52,7 @@ namespace ScheduledQueue.Tests.BasicQueueServiceTests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(QueueDoesNotExistException))]
+		[ExpectedException(typeof(QueueNotFoundException))]
 		public void RescheduleMessageWithQueueThatDoesNotExist()
 		{
 			var dateTimeService = new InProcDateTimeService();
@@ -76,6 +76,27 @@ namespace ScheduledQueue.Tests.BasicQueueServiceTests
 
 			// Perform
 			queueService.RescheduleMessage("badqueue", "abc", dateTimeService.GetCurrentDateTime().AddSeconds(30));
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(MessageNotFoundException))]
+		public void RescheduleMessageWithMessageThatDoesNotExist()
+		{
+			var dateTimeService = new InProcDateTimeService();
+			var signalService = new InProcSignalService();
+			var queueDataProvider = new TestQueueDataProvider();
+			var queueService = new BasicQueueService(queueDataProvider, dateTimeService, signalService);
+
+			// Setup
+			string queueName = "MyQueue";
+			queueDataProvider.InsertQueue(queueName);
+
+			// Preconditions
+			Assert.IsTrue(queueDataProvider.GetQueues().Count() == 1);
+			Assert.IsTrue(queueDataProvider.NumTotalMessages(queueName) == 0);
+
+			// Perform
+			queueService.RescheduleMessage(queueName, "abc", dateTimeService.GetCurrentDateTime().AddSeconds(30));
 		}
 	}
 }
