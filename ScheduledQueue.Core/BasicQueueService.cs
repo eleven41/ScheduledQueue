@@ -29,8 +29,9 @@ namespace ScheduledQueue.Core
 
 		public string CreateQueue(string queueName)
 		{
-			if (String.IsNullOrEmpty(queueName))
+			if (String.IsNullOrWhiteSpace(queueName))
 				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
 
 			_queueDataProvider.InsertQueue(queueName);
 			return queueName;
@@ -38,17 +39,28 @@ namespace ScheduledQueue.Core
 
 		public void DeleteQueue(string queueName)
 		{
+			if (String.IsNullOrEmpty(queueName))
+				throw new ArgumentNullException("queueName");
+
 			_queueDataProvider.DeleteQueue(queueName);
 		}
 
 		public SendMessageResult SendMessage(string queueName, string messageBody)
 		{
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+
 			var availabilityDate = _dateTimeService.GetCurrentDateTime();
 			return SendMessage(queueName, messageBody, availabilityDate);
 		}
 
 		public SendMessageResult SendMessage(string queueName, string messageBody, DateTime availabilityDate)
 		{
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+
 			string messageId = GenerateMessageId();
 			_queueDataProvider.InsertMessage(queueName, messageId, messageBody, availabilityDate);
 
@@ -71,6 +83,10 @@ namespace ScheduledQueue.Core
 
 		public SendMessageResult SendMessage(string queueName, string messageBody, TimeSpan availabilityDelay)
 		{
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+
 			var currentTime = _dateTimeService.GetCurrentDateTime();
 			var availabilityDate = currentTime + availabilityDelay;
 			return SendMessage(queueName, messageBody, availabilityDate);
@@ -106,12 +122,18 @@ namespace ScheduledQueue.Core
 
 		public ReceiveMessageResult ReceiveMessage(string queueName, TimeSpan receiveTimeout, TimeSpan visibilityTimeout)
 		{
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+
 			var currentTime = _dateTimeService.GetCurrentDateTime();
 			var newAvailabilityDate = currentTime + visibilityTimeout;
+
+			// Check to see if any backlogged messages exist
 			var message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 			if (message != null)
 			{
-				AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
+				//AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
 
 				return new ReceiveMessageResult()
 				{
@@ -122,12 +144,20 @@ namespace ScheduledQueue.Core
 			}
 
 			var endTime = currentTime + receiveTimeout;
-			while (currentTime < endTime)
+			currentTime = _dateTimeService.GetCurrentDateTime();
+			while (currentTime <= endTime)
 			{
-				// No message was found, wait for the receive timeout period to see if anything new comes
 				TimeSpan delay = endTime - currentTime;
-				if (!_signalService.Wait(queueName, delay))
-					break;
+
+				// Will any messages be available within our receive window?
+				DateTime? nextMessage = _queueDataProvider.PeekMessage(queueName, endTime);
+				if (nextMessage.HasValue)
+				{
+					delay = nextMessage.Value - currentTime;
+				}
+			
+				// Wait for the receive timeout period to see if anything new comes
+				_signalService.Wait(queueName, delay);
 
 				currentTime = _dateTimeService.GetCurrentDateTime();
 
@@ -136,7 +166,7 @@ namespace ScheduledQueue.Core
 				message = _queueDataProvider.GetMessage(queueName, currentTime, newAvailabilityDate);
 				if (message != null)
 				{
-					AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
+					//AddVisibilitySignal(queueName, message.MessageId, visibilityTimeout);
 
 					return new ReceiveMessageResult()
 					{
@@ -152,14 +182,28 @@ namespace ScheduledQueue.Core
 
 		public void DeleteMessage(string queueName, string messageId)
 		{
-			CancelVisibilitySignal(queueName, messageId);
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+			if (String.IsNullOrWhiteSpace(messageId))
+				throw new ArgumentNullException("messageId");
+			messageId = messageId.Trim();
+
+			//CancelVisibilitySignal(queueName, messageId);
 
 			_queueDataProvider.DeleteMessage(queueName, messageId);
 		}
 
 		public RescheduleMessageResult RescheduleMessage(string queueName, string messageId, DateTime availabilityDate)
 		{
-			CancelVisibilitySignal(queueName, messageId);
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+			if (String.IsNullOrWhiteSpace(messageId))
+				throw new ArgumentNullException("messageId");
+			messageId = messageId.Trim();
+
+			//CancelVisibilitySignal(queueName, messageId);
 
 			string newMessageId = GenerateMessageId();
 			_queueDataProvider.UpdateMessage(queueName, messageId, newMessageId, availabilityDate);
@@ -176,6 +220,13 @@ namespace ScheduledQueue.Core
 
 		public RescheduleMessageResult RescheduleMessage(string queueName, string messageId, TimeSpan availabilityDelay)
 		{
+			if (String.IsNullOrWhiteSpace(queueName))
+				throw new ArgumentNullException("queueName");
+			queueName = queueName.Trim();
+			if (String.IsNullOrWhiteSpace(messageId))
+				throw new ArgumentNullException("messageId");
+			messageId = messageId.Trim();
+
 			var currentTime = _dateTimeService.GetCurrentDateTime();
 			var availabilityDate = currentTime + availabilityDelay;
 			return RescheduleMessage(queueName, messageId, availabilityDate);

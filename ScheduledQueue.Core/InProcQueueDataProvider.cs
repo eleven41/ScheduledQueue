@@ -9,7 +9,7 @@ namespace ScheduledQueue.Core
 {
 	public class InProcQueueDataProvider : IQueueDataProvider
 	{
-		class Queue
+		protected class Queue
 		{
 			public Queue(string queueName)
 			{
@@ -22,7 +22,7 @@ namespace ScheduledQueue.Core
 			public List<Message> Messages { get; private set; }
 		}
 
-		class Message
+		protected class Message
 		{
 			public string MessageId { get; set; }
 			public string MessageBody { get; set; }
@@ -30,7 +30,7 @@ namespace ScheduledQueue.Core
 			public DateTime AvailabilityDate { get; set; }
 		}
 
-		ConcurrentDictionary<string, Queue> _queues = new ConcurrentDictionary<string, Queue>();
+		protected ConcurrentDictionary<string, Queue> _queues = new ConcurrentDictionary<string, Queue>();
 
 		#region IQueueDataProvider Members
 
@@ -63,7 +63,7 @@ namespace ScheduledQueue.Core
 			}
 		}
 
-		Queue GetQueue(string queueName)
+		protected Queue GetQueue(string queueName)
 		{
 			Queue queue;
 			if (_queues.TryGetValue(queueName.ToLower(), out queue))
@@ -75,7 +75,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new Exception("Queue does not exist: " + queueName);
+				throw new QueueDoesNotExistException(queueName);
 
 			Message message = new Message()
 			{
@@ -95,7 +95,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new Exception("Queue does not exist: " + queueName);
+				throw new QueueDoesNotExistException(queueName);
 
 			lock (queue.Messages)
 			{
@@ -114,11 +114,26 @@ namespace ScheduledQueue.Core
 			}
 		}
 
+		public DateTime? PeekMessage(string queueName, DateTime beforeDate)
+		{
+			Queue queue = GetQueue(queueName);
+			if (queue == null)
+				throw new QueueDoesNotExistException(queueName);
+
+			lock (queue.Messages)
+			{
+				var message = queue.Messages.Where(m => m.AvailabilityDate <= beforeDate).OrderBy(m => m.AvailabilityDate).FirstOrDefault();
+				if (message == null)
+					return null;
+				return message.AvailabilityDate;
+			}
+		}
+
 		public void DeleteMessage(string queueName, string messageId)
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new Exception("Queue does not exist: " + queueName);
+				throw new QueueDoesNotExistException(queueName);
 
 			lock (queue.Messages)
 			{
@@ -133,7 +148,7 @@ namespace ScheduledQueue.Core
 		{
 			Queue queue = GetQueue(queueName);
 			if (queue == null)
-				throw new Exception("Queue does not exist: " + queueName);
+				throw new QueueDoesNotExistException(queueName);
 
 			lock (queue.Messages)
 			{

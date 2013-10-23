@@ -47,6 +47,14 @@ namespace ScheduledQueue.Core
 		GetMessageResult GetMessage(string queueName, DateTime beforeDate, DateTime newAvailabiltyDate);
 
 		/// <summary>
+		/// Returns the date time of the next available message.
+		/// </summary>
+		/// <param name="queueName">Name of the queue.</param>
+		/// <param name="beforeDate">Latest date of the returned message.</param>
+		/// <returns>Availability date of the next message.</returns>
+		DateTime? PeekMessage(string queueName, DateTime beforeDate);
+
+		/// <summary>
 		/// Deletes a message from the queue.
 		/// </summary>
 		/// <param name="queueName">Name of the queue.</param>
