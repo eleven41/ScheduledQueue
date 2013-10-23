@@ -55,12 +55,17 @@ namespace ScheduledQueue.Api.App_Start
         {
 			kernel.Bind<ScheduledQueue.Core.IDateTimeService>()
 				.To<ScheduledQueue.Core.InProcDateTimeService>();
+			
 			kernel.Bind<ScheduledQueue.Core.IDataStorage>()
-				.To<ScheduledQueue.Core.InProcDataStorage>();
+				.To<ScheduledQueue.Core.InProcDataStorage>()
+				.InSingletonScope();
+
+			kernel.Bind<ScheduledQueue.Core.ISignalService>()
+				.To<ScheduledQueue.Core.InProcSignalService>()
+				.InSingletonScope();
+
 			kernel.Bind<ScheduledQueue.Core.IQueueService>()
 				.To<ScheduledQueue.Core.BasicQueueService>();
-			kernel.Bind<ScheduledQueue.Core.ISignalService>()
-				.To<ScheduledQueue.Core.InProcSignalService>();
         }        
     }
 }
