@@ -11,14 +11,19 @@ namespace Tests
 	{
 		static void Main(string[] args)
 		{
+			BasicQueueServiceTests();
+
+			//Test1();
+			//Test2();
+		}
+
+		private static void BasicQueueServiceTests()
+		{
 			CreateQueue1();
 			CreateQueue2();
 			CreateQueue3();
 			CreateQueue4();
 			CreateQueue5();
-
-			//Test1();
-			//Test2();
 		}
 
 		private static void CreateQueue1()
@@ -30,6 +35,7 @@ namespace Tests
 
 			string queueName = "MyQueue";
 
+			// Preconditions
 			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
 
 			{
@@ -38,7 +44,10 @@ namespace Tests
 				System.Diagnostics.Debug.Assert(queueName == newQueueName);
 			}
 
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			// Postconditions
+			var queues = dataStorage.GetQueues();
+			System.Diagnostics.Debug.Assert(queues.Count() == 1);
+			System.Diagnostics.Debug.Assert(queues.Single() == queueName);
 		}
 
 		private static void CreateQueue2()
@@ -50,9 +59,10 @@ namespace Tests
 
 			string queueName = "MyQueue";
 
-			// Preload
+			// Setup
 			dataStorage.InsertQueue(queueName);
 
+			// Preconditions
 			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
 
 			{
@@ -61,7 +71,10 @@ namespace Tests
 				System.Diagnostics.Debug.Assert(queueName == newQueueName);
 			}
 
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			// Postconditions
+			var queues = dataStorage.GetQueues();
+			System.Diagnostics.Debug.Assert(queues.Count() == 1);
+			System.Diagnostics.Debug.Assert(queues.Single() == queueName);
 		}
 
 		private static void CreateQueue3()
@@ -73,9 +86,10 @@ namespace Tests
 
 			string queueName = "MyQueue";
 
-			// Preload
+			// Setup
 			dataStorage.InsertQueue(queueName);
 
+			// Preconditions
 			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
 
 			{
@@ -85,7 +99,10 @@ namespace Tests
 				System.Diagnostics.Debug.Assert(queueName == newQueueName);
 			}
 
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
+			// Postconditions
+			var queues = dataStorage.GetQueues();
+			System.Diagnostics.Debug.Assert(queues.Count() == 1);
+			System.Diagnostics.Debug.Assert(queues.Single() == "MyQueue");
 		}
 
 		private static void CreateQueue4()
@@ -97,9 +114,10 @@ namespace Tests
 
 			string queueName = "MyQueue";
 
-			// Preload
+			// Setup
 			dataStorage.InsertQueue(queueName);
 
+			// Preconditions
 			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 1);
 
 			{
@@ -109,7 +127,11 @@ namespace Tests
 				System.Diagnostics.Debug.Assert(queueName == newQueueName);
 			}
 
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 2);
+			// Postconditions
+			var queues = dataStorage.GetQueues();
+			System.Diagnostics.Debug.Assert(queues.Count() == 2);
+			System.Diagnostics.Debug.Assert(queues.First() == "MyQueue");
+			System.Diagnostics.Debug.Assert(queues.Last() == "myqueue2");
 		}
 
 		private static void CreateQueue5()
@@ -121,6 +143,7 @@ namespace Tests
 
 			string queueName = "";
 
+			// Preconditions
 			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
 
 			{
@@ -138,7 +161,9 @@ namespace Tests
 				}
 			}
 
-			System.Diagnostics.Debug.Assert(dataStorage.GetQueues().Count() == 0);
+			// Postconditions
+			var queues = dataStorage.GetQueues();
+			System.Diagnostics.Debug.Assert(queues.Count() == 0);
 		}
 
 
@@ -263,13 +288,13 @@ namespace Tests
 		}
 	}
 
-	public class TimeoutSignalService : ISignalService
+	public class TimeoutSignalService : InProcSignalService
 	{
 		public int NumTimeouts { get; set; }
 
 		#region ISignalService Members
 
-		public void Signal(string queueName, SignalSources source)
+		public override void Signal(string queueName, SignalSources source)
 		{
 			if (source == SignalSources.ReceiveTimeout)
 			{
@@ -279,7 +304,7 @@ namespace Tests
 				}
 			}
 
-			QueueSignal.Instance.Signal(queueName);
+			base.Signal(queueName, source);
 		}
 
 		#endregion
