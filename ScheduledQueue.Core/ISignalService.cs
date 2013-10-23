@@ -15,6 +15,7 @@ namespace ScheduledQueue.Core
 
 	public interface ISignalService
 	{
+		bool Wait(string queueName, TimeSpan delay);
 		void Signal(string queueName, SignalSources source);
 	}
 }

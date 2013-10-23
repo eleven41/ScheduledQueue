@@ -13,14 +13,11 @@ namespace ScheduledQueue.Core
 		IDateTimeService _dateTimeService;
 		ISignalService _signalService;
 
-		QueueSignal _queueSignal;
-
 		public BasicQueueService(IDataStorage dataStorage, IDateTimeService dateTimeService, ISignalService signalService)
 		{
 			_dataStorage = dataStorage;
 			_dateTimeService = dateTimeService;
 			_signalService = signalService;
-			_queueSignal = QueueSignal.Instance;
 		}
 
 		#region IQueueService Members
@@ -129,7 +126,7 @@ namespace ScheduledQueue.Core
 			{
 				// No message was found, wait for the receive timeout period to see if anything new comes
 				TimeSpan delay = endTime - currentTime;
-				if (!_queueSignal.Wait(queueName, delay))
+				if (!_signalService.Wait(queueName, delay))
 					break;
 
 				currentTime = _dateTimeService.GetCurrentDateTime();
