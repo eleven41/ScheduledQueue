@@ -9,6 +9,11 @@ namespace ScheduledQueue.Api.Models
 	public class ListQueuesResponseModel : BasicResponseModel
 	{
 		public List<string> Queues { get; set; }
+
+		public bool ShouldSerializeQueues()
+		{
+			return (Queues != null);
+		}
 	}
 
 	public class CreateQueueRequestModel
@@ -20,6 +25,11 @@ namespace ScheduledQueue.Api.Models
 	public class CreateQueueResponseModel : BasicResponseModel
 	{
 		public string QueueName { get; set; }
+
+		public bool ShouldSerializeQueueName()
+		{
+			return !String.IsNullOrEmpty(QueueName);
+		}
 	}
 
 	public class DeleteQueueRequestModel

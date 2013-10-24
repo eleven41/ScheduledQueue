@@ -22,8 +22,25 @@ namespace ScheduledQueue.Api.Models
 	public class SendMessageResponseModel : BasicResponseModel
 	{
 		public string QueueName { get; set; }
+
+		public bool ShouldSerializeQueueName()
+		{
+			return !String.IsNullOrEmpty(QueueName);
+		}
+
 		public string MessageId { get; set; }
+
+		public bool ShouldSerializeMessageId()
+		{
+			return !String.IsNullOrEmpty(MessageId);
+		}
+
 		public string Date { get; set; }
+
+		public bool ShouldSerializeDate()
+		{
+			return !String.IsNullOrEmpty(Date);
+		}
 	}
 
 	public class ReceiveMessageRequestModel
@@ -38,8 +55,25 @@ namespace ScheduledQueue.Api.Models
 	public class ReceiveMessageResponseModel : BasicResponseModel
 	{
 		public string MessageBody { get; set; }
+
+		public bool ShouldSerializeMessageBody()
+		{
+			return !String.IsNullOrEmpty(MessageBody);
+		}
+		
 		public string Date { get; set; }
+
+		public bool ShouldSerializeDate()
+		{
+			return !String.IsNullOrEmpty(Date);
+		}
+
 		public string MessageId { get; set; }
+
+		public bool ShouldSerializeMessageId()
+		{
+			return !String.IsNullOrEmpty(MessageId);
+		}
 	}
 
 	public class DeleteMessageRequestModel
@@ -71,7 +105,24 @@ namespace ScheduledQueue.Api.Models
 	public class RescheduleMessageResponseModel : BasicResponseModel
 	{
 		public string QueueName { get; set; }
+
+		public bool ShouldSerializeQueueName()
+		{
+			return !String.IsNullOrEmpty(QueueName);
+		}
+
 		public string MessageId { get; set; }
+
+		public bool ShouldSerializeMessageId()
+		{
+			return !String.IsNullOrEmpty(MessageId);
+		}
+
 		public string Date { get; set; }
+
+		public bool ShouldSerializeDate()
+		{
+			return !String.IsNullOrEmpty(Date);
+		}
 	}
 }

@@ -8,5 +8,10 @@ namespace ScheduledQueue.Api.Models
 	public class GetCurrentDateTimeResponseModel : BasicResponseModel
 	{
 		public string Date { get; set; }
+
+		public bool ShouldSerializeDate()
+		{
+			return !String.IsNullOrEmpty(Date);
+		}
 	}
 }
